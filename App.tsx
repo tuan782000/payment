@@ -1,118 +1,171 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
+    StyleSheet,
+    Text,
+    View,
+    Image,
+    Alert,
+    TouchableOpacity
 } from 'react-native';
+import React, { useState } from 'react';
+import InputComponent from './components/InputComponent';
+import ButtonComponent from './components/ButtonComponent';
+import Tts from 'react-native-tts';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const unitTexts = [
+    '',
+    'một',
+    'hai',
+    'ba',
+    'bốn',
+    'năm',
+    'sáu',
+    'bảy',
+    'tám',
+    'chín'
+];
+const scaleTexts = ['', 'nghìn', 'triệu', 'tỷ'];
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+function readThreeDigits(number: any, hasScale = false) {
+    const hundreds = Math.floor(number / 100);
+    const remainder = number % 100;
+    const tens = Math.floor(remainder / 10);
+    const units = remainder % 10;
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+    let result = '';
+
+    if (hundreds > 0) {
+        result += unitTexts[hundreds] + ' trăm ';
+    } else if (hasScale) {
+        result += 'không trăm ';
+    }
+
+    if (tens > 1) {
+        result += unitTexts[tens] + ' mươi ';
+    } else if (tens === 1) {
+        result += 'mười ';
+    } else if (hasScale && units > 0) {
+        result += 'lẻ ';
+    }
+
+    if (tens > 1 && units === 1) {
+        result += 'mốt';
+    } else if (tens > 0 && units === 5) {
+        result += 'lăm';
+    } else if (units > 0) {
+        result += unitTexts[units];
+    }
+
+    return result.trim();
 }
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+function readMoney(number: any) {
+    if (number === 0) {
+        return 'không đồng';
+    }
+    let result = '';
+    let index = 0;
+    let lastIndex = Math.floor(String(number).length / 3);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+    do {
+        const threeDigits = number % 1000;
 
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+        const hasScale = index !== lastIndex;
+
+        const text = readThreeDigits(threeDigits, hasScale);
+
+        if (threeDigits > 0) {
+            const unit = scaleTexts[index];
+            result = `${text} ${unit} ${result}`;
+        }
+
+        number = Math.floor(number / 1000);
+        index++;
+    } while (number > 0);
+
+    return result.trim() + ' đồng';
+}
+
+const App = () => {
+    const [number, setNumber] = useState<string | number>(0);
+    const [imageUri, setImageUri] = useState<string | null>(null);
+    const [numberInWords, setNumberInWords] = useState<string>(''); // New state for number in words
+
+    const handleChangeValue = (val: string) => {
+        // Loại bỏ các ký tự không phải số
+        const numericValue = val.replace(/\D/g, '');
+
+        // Kiểm tra độ dài số
+        if (numericValue.length > 12) {
+            Alert.alert('Thông báo', 'Không được nhập quá 12 chữ số!');
+            return;
+        }
+
+        const parsedNumber = parseFloat(numericValue) || 0;
+        setNumber(parsedNumber);
+        setNumberInWords(readMoney(parsedNumber)); // Cập nhật số tiền bằng chữ
+        // Update number in words when the number changes
+    };
+
+    const createTransaction = async () => {
+        const url = `https://img.vietqr.io/image/TCB-7778748901-print.png?amount=${number}&addInfo=Chuc%20mung%20nam%20moi&accountName=Nguyen%20Thai%20Tuan`;
+        // const url = `https://img.vietqr.io/image/BIDV-5801216109-print.png?amount=${number}&addInfo=Chuc%20mung%20nam%20moi&accountName=Nguyen%20Ha%20Duc%20Thanh`;
+        console.log(url);
+        setImageUri(url);
+    };
+
+    const handleDelete = () => {
+        setNumber(0);
+        setImageUri(null);
+        setNumberInWords('');
+    };
+
+    return (
+        <View>
+            <InputComponent
+                placeholder={'Nhập số tiền'}
+                value={number.toString()}
+                handleChange={handleChangeValue}
+                onDelete={handleDelete}
+            />
+            {/* Display number in words */}
+            {numberInWords && (
+                <TouchableOpacity
+                    onPress={() => {
+                        Tts.setDefaultLanguage('vi-VN');
+                        Tts.setDefaultVoice('vi-VN-language');
+                        Tts.speak(`${numberInWords}`);
+                        console.log('Hello');
+                    }}
+                >
+                    <Text style={styles.numberInWords}>{numberInWords}</Text>
+                </TouchableOpacity>
+            )}
+            <ButtonComponent
+                onPress={createTransaction}
+                title='Tạo mã chuyển tiền'
+                disabled={number === 0 ? true : false}
+            />
+            {imageUri && (
+                <Image source={{ uri: imageUri }} style={styles.image} />
+            )}
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
+    );
+};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
+    numberInWords: {
+        fontSize: 24,
+        marginTop: 10,
+        color: 'black',
+        textAlign: 'center',
+        paddingHorizontal: 10
+    },
+    image: {
+        width: 400,
+        height: 400,
+        marginTop: 20,
+        objectFit: 'contain'
+    }
 });
 
 export default App;
