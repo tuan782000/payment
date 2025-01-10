@@ -15,24 +15,30 @@ const Routers = () => {
     const dispatch = useDispatch();
     const { hasData } = useSelector((state: RootState) => state.bank);
 
-    const [isLoading, setisLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const checkData = async () => {
+        try {
+            setIsLoading(true);
+            const jsonValue = await AsyncStorage.getItem('bankInfo');
+            if (jsonValue) {
+                const data = JSON.parse(jsonValue);
+                dispatch(setBankInfo(data));
+            }
+
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 1000);
+        } catch (error) {
+            console.log(error);
+        }
+
+        // finally {
+        //     setIsLoading(false);
+        // }
+    };
 
     useEffect(() => {
-        const checkData = async () => {
-            try {
-                setisLoading(true);
-                const jsonValue = await AsyncStorage.getItem('bankInfo');
-                if (jsonValue) {
-                    const data = JSON.parse(jsonValue);
-                    dispatch(setBankInfo(data));
-                }
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setisLoading(false);
-            }
-        };
-
         checkData();
     }, [dispatch]);
 
