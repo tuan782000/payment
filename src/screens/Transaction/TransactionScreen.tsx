@@ -16,19 +16,20 @@ import {
 import Tts from 'react-native-tts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from 'react-native-vector-icons/Entypo';
+import { useDispatch } from 'react-redux';
+import { clearBankInfo } from '../../redux/reducers/bankSlice';
 
 const TransactionScreen = () => {
+    const dispatch = useDispatch();
     // state liên quan đến tiền
     const [number, setNumber] = useState<string | number>('');
     const [imageUri, setImageUri] = useState<string | null>(null);
-    const [numberInWords, setNumberInWords] = useState<string>(''); // New state for number in words
+    const [numberInWords, setNumberInWords] = useState<string>('');
 
     // state liên qua đến tài khoản và ngân hàng
     const [numberAccount, setNumberAccount] = useState('');
     const [selectedBank, setSelectedBank] = useState('');
     const [selectedNameBank, setSelectedNameBank] = useState('');
-
-    console.log(numberAccount, selectedBank);
 
     const handleChangeValue = (val: string) => {
         // Loại bỏ các ký tự không phải số
@@ -42,15 +43,13 @@ const TransactionScreen = () => {
 
         const parsedNumber = parseFloat(numericValue) || 0;
         setNumber(parsedNumber);
-        setNumberInWords(readMoney(parsedNumber)); // Cập nhật số tiền bằng chữ
-        // Update number in words when the number changes
+        setNumberInWords(readMoney(parsedNumber));
     };
 
     const createTransaction = async () => {
         const url = `https://img.vietqr.io/image/${selectedBank}-${numberAccount}-print.png?amount=${number}&addInfo=Chuc%20mung%20nam%20moi`;
         // const url = `https://img.vietqr.io/image/${selectedBank}-${numberAccount}-print.png?amount=${number}&addInfo=Chuc%20mung%20nam%20moi&accountName=Nguyen%20Thai%20Tuan`;
         // const url = `https://img.vietqr.io/image/BIDV-5801216109-print.png?amount=${number}&addInfo=Chuc%20mung%20nam%20moi&accountName=Nguyen%20Ha%20Duc%20Thanh`;
-        console.log(url);
         setImageUri(url);
     };
 
@@ -63,11 +62,8 @@ const TransactionScreen = () => {
     const getDataFromAsyncStore = async () => {
         try {
             const jsonValue = await AsyncStorage.getItem('bankInfo');
-            console.log(jsonValue);
             const data = jsonValue != null ? JSON.parse(jsonValue) : null;
-            // console.log(data);
             if (data) {
-                // Kiểm tra và cập nhật các state từ dữ liệu lấy được
                 setNumberAccount(data.numberAccount || '');
                 setSelectedBank(data.selectedBank.code || '');
                 setSelectedNameBank(data.selectedBank.short_name || '');
@@ -84,9 +80,10 @@ const TransactionScreen = () => {
     const handleChangeAccount = async () => {
         try {
             await AsyncStorage.removeItem('bankInfo');
-        } catch (e) {
+            dispatch(clearBankInfo());
+        } catch (error) {
             // remove error
-            console.log(e);
+            console.log(error);
         }
     };
 
@@ -130,7 +127,6 @@ const TransactionScreen = () => {
                         Tts.setDefaultLanguage('vi-VN');
                         Tts.setDefaultVoice('vi-VN-language');
                         Tts.speak(`${numberInWords}`);
-                        console.log('Hello');
                     }}
                 >
                     <Text style={styles.numberInWords}>{numberInWords}</Text>

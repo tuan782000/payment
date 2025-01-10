@@ -26,7 +26,8 @@
         "react-native-tts": "^4.1.1",
         "react-native-vector-icons": "^10.2.0",
         "react-redux": "^9.2.0",
-        "redux": "^5.0.1"
+        "redux": "^5.0.1",
+        "redux-persist": "^6.0.0"
     },
     "devDependencies": {
         "@babel/core": "^7.25.2",

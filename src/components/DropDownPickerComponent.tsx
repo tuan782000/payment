@@ -29,6 +29,11 @@ const DropDownPickerComponent = (props: Props) => {
             bank.code.toLowerCase().includes(searchKey.toLowerCase())
     );
 
+    const closeModalize = () => {
+        modalizeRef.current?.close();
+        setSearchKey('');
+    };
+
     useEffect(() => {
         if (isVisibleModalize) {
             modalizeRef.current?.open();
@@ -100,7 +105,7 @@ const DropDownPickerComponent = (props: Props) => {
                                 </View>
                                 <SpaceComponent width={10} />
                                 <ButtonComponent
-                                    onPress={() => modalizeRef.current?.close()}
+                                    onPress={() => closeModalize()}
                                     title='Quay lại'
                                     buttonStyles={{ paddingHorizontal: 10 }}
                                 />
@@ -125,12 +130,14 @@ const DropDownPickerComponent = (props: Props) => {
                                 style={{
                                     flexDirection: 'row',
                                     minHeight: 54,
-                                    borderBottomWidth: 1,
+                                    // borderBottomWidth: 1,
                                     alignItems: 'center',
                                     backgroundColor:
                                         selected?.short_name === bank.short_name
                                             ? 'coral'
-                                            : ''
+                                            : '',
+                                    paddingHorizontal: 20,
+                                    borderRadius: 8
                                 }}
                             >
                                 <View style={{ width: 100 }}>

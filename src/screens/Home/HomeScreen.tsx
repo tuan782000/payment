@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { useDispatch } from 'react-redux';
 import {
     ButtonComponent,
     DropDownPickerComponent,
@@ -10,21 +11,18 @@ import {
     SpaceComponent
 } from '../../components';
 import { SelectModel } from '../../models/SelectModel';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setBankInfo } from '../../redux/reducers/bankSlice';
 
 const HomeScreen = () => {
+    const dispatch = useDispatch();
     const [banks, setBanks] = useState<SelectModel[]>([]); // danh sách ngân hàng
     const [numberAccount, setNumberAccount] = useState(''); // stk ngân hàng
-    const [selectedBank, setSelectedBank] = useState(null); // ngân hàng bạn đã chọn
-
-    // console.log(selectedBank);
+    const [selectedBank, setSelectedBank] = useState<any>(null); // ngân hàng bạn đã chọn
 
     const fetchBanks = async () => {
         try {
             const response = await axios.get('https://api.vietqr.io/v2/banks');
             const data = await response.data.data;
-            // console.log(data);
-
             // custom lại danh sách bank sau khi lấy về
             const bankList = data.map((bank: any) => ({
                 id: bank.id,
@@ -51,12 +49,19 @@ const HomeScreen = () => {
 
     const saveInfoBank = async () => {
         try {
-            const jsonValue = JSON.stringify({ numberAccount, selectedBank });
-            await AsyncStorage.setItem('bankInfo', jsonValue);
-            console.log('Thông tin đã được lưu:', jsonValue);
-        } catch (e) {
-            // saving error
-            console.log(e);
+            const bankData: any = { numberAccount, selectedBank };
+            await AsyncStorage.setItem('bankInfo', JSON.stringify(bankData));
+            dispatch(setBankInfo(bankData));
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleSelectedBank = (val: any) => {
+        if (selectedBank?.id === val.id) {
+            setSelectedBank(null);
+        } else {
+            setSelectedBank(val);
         }
     };
 
@@ -83,9 +88,7 @@ const HomeScreen = () => {
             <SpaceComponent height={20} />
             <DropDownPickerComponent
                 values={banks}
-                // onSelect={(val: string) => console.log(val)}
-                // selected={undefined}
-                onSelect={(val: any) => setSelectedBank(val)} // Lưu ngân hàng đã chọn
+                onSelect={handleSelectedBank}
                 selected={selectedBank}
                 label='Lựa chọn ngân hàng'
             />
