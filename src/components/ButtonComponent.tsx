@@ -1,20 +1,29 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+    StyleProp,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ViewStyle
+} from 'react-native';
 import React from 'react';
 
 interface Props {
     title: string;
     onPress: () => void;
-    disabled: boolean;
+    disabled?: boolean;
+    buttonStyles?: StyleProp<ViewStyle>;
 }
 
 const ButtonComponent = (props: Props) => {
-    const { title, onPress, disabled } = props;
+    const { title, onPress, disabled, buttonStyles } = props;
     return (
         <TouchableOpacity
             onPress={onPress}
             style={[
                 styles.button,
-                { backgroundColor: disabled ? 'gray' : 'coral' }
+                { backgroundColor: disabled ? 'gray' : 'coral' },
+                buttonStyles
             ]}
             disabled={disabled}
         >
@@ -27,10 +36,7 @@ export default ButtonComponent;
 
 const styles = StyleSheet.create({
     button: {
-        marginTop: 40,
-        // backgroundColor: 'coral',
         minHeight: 54,
-        marginHorizontal: 20,
         borderRadius: 8,
         justifyContent: 'center',
         alignItems: 'center'
