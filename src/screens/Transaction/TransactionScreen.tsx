@@ -7,7 +7,7 @@ import {
     View
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { readMoney } from '../../utils';
+import { formatMoney, parseMoney, readMoney } from '../../utils';
 import {
     ButtonComponent,
     InputComponent,
@@ -33,17 +33,27 @@ const TransactionScreen = () => {
 
     const handleChangeValue = (val: string) => {
         // Loại bỏ các ký tự không phải số
-        const numericValue = val.replace(/\D/g, '');
+        // const numericValue = val.replace(/\D/g, '');
+        const numericValue = parseMoney(val);
 
         // Kiểm tra độ dài số
-        if (numericValue.length > 12) {
+        // if (numericValue.length > 12) {
+        //     Alert.alert('Thông báo', 'Không được nhập quá 12 chữ số!');
+        //     return;
+        // }
+
+        // Kiểm tra độ dài số
+        if (String(numericValue).length > 12) {
             Alert.alert('Thông báo', 'Không được nhập quá 12 chữ số!');
             return;
         }
 
-        const parsedNumber = parseFloat(numericValue) || 0;
-        setNumber(parsedNumber);
-        setNumberInWords(readMoney(parsedNumber));
+        // const parsedNumber = parseFloat(numericValue) || 0;
+        // setNumber(parsedNumber);
+        // setNumberInWords(readMoney(parsedNumber));
+        // Cập nhật giá trị
+        setNumber(numericValue);
+        setNumberInWords(readMoney(numericValue));
     };
 
     const createTransaction = async () => {
@@ -52,6 +62,8 @@ const TransactionScreen = () => {
         // const url = `https://img.vietqr.io/image/BIDV-5801216109-print.png?amount=${number}&addInfo=Chuc%20mung%20nam%20moi&accountName=Nguyen%20Ha%20Duc%20Thanh`;
         setImageUri(url);
     };
+
+    console.log(number);
 
     const handleDelete = () => {
         setNumber('');
@@ -89,7 +101,7 @@ const TransactionScreen = () => {
 
     return (
         <View style={styles.container}>
-            <SpaceComponent height={40} />
+            <SpaceComponent height={60} />
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ flex: 1 }}>
                     <View
@@ -114,7 +126,7 @@ const TransactionScreen = () => {
 
             <InputComponent
                 placeholder={'Nhập số tiền'}
-                value={number.toString()}
+                value={formatMoney(number)}
                 handleChange={handleChangeValue}
                 onDelete={handleDelete}
                 keyboardType={'numeric'}

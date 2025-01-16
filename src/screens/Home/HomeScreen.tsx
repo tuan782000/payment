@@ -16,8 +16,8 @@ import { setBankInfo } from '../../redux/reducers/bankSlice';
 const HomeScreen = () => {
     const dispatch = useDispatch();
     const [banks, setBanks] = useState<SelectModel[]>([]); // danh sách ngân hàng
-    const [numberAccount, setNumberAccount] = useState(''); // stk ngân hàng
     const [selectedBank, setSelectedBank] = useState<any>(null); // ngân hàng bạn đã chọn
+    const [numberAccount, setNumberAccount] = useState(''); // stk ngân hàng
 
     const fetchBanks = async () => {
         try {
@@ -65,9 +65,13 @@ const HomeScreen = () => {
         }
     };
 
+    const handleChangeValue = (val: string) => {
+        console.log(val);
+    };
+
     return (
         <View style={styles.container}>
-            <SpaceComponent height={20} />
+            <SpaceComponent height={40} />
             <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
                 Giải thích cơ chế hoạt động của ứng dụng quét mã thanh toán bằng
                 QR code.
